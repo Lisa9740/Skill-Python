@@ -3,19 +3,8 @@ import random
 import re
 
 # create a word list
-words = ['watere', "housee", "kitcheen", "flowere", "theatre"]
-
-
-# check if the guess is in the word
-def check_guess_in_the_word(guess, word):
-    if guess in word:
-        found_letter = ""
-        count_letter = word.count(guess)
-        for i in range(count_letter):
-            found_letter += guess
-        return guess
-    else:
-        return ""
+words = ['water', "house", "kitchen", "flower", "theatre"]
+word_chosen = random.choice(words)
 
 
 # displays word to a secret format to player
@@ -27,92 +16,63 @@ def set_secret_word_display(word):
 
 
 # search in word occurrence(s) of a guesses letter
-def display_letter_at_guess(letter, word, word_to_guess):
+def check_guess(letter, word, secret_word):
     indexes = [m.start() for m in re.finditer(letter, word)]
     for i in indexes:
-        word_to_guess[i] = letter
-    return word_to_guess
+        secret_word[i] = letter
+    return secret_word
 
 
 def set_player_point(chances_left):
     return chances_left * 4
 
 
-def status_play_message(is_found, is_games_ended, win, chances):
-    if win:
-        print(f"You win ! You have {set_player_point(chances)} point !")
-    elif is_found is True:
-        print(f"Cool you guess right! \n Keep going you have {chances} chances left.")
-    elif is_games_ended is False & is_found is False:
-        print(f"Retry ! \nKeep going you have {chances} chances left.")
-    elif is_games_ended is True:
+def right_guess(chances):
+    if chances > 0:
+        print(f"Cool you guess right!")
+
+
+def winning_game(secret_word, chances):
+    print(f"\nCongratulation the word was {''.join(secret_word)} ! \n"
+          f"You win ! You have {set_player_point(chances)} points !")
+
+
+def wrong_guess(chances):
+    if chances >= 1:
+        print(f"Retry !")
+    else:
         print("Game Over !")
 
 
-def is_a_winning_game(secret_word, chances):
-    is_win = False
-    is_end = False
-    if not "-" in secret_word:
-        is_win = True
-        is_end = True
-        print(f"\nCongratulation the word was {''.join(secret_word)} !")
-    status_play_message(True, is_end, is_win, chances)
-    if is_win:
-        return True
-    else:
-        return False
-
-
-def is_game_over(chances):
-    if chances < 1:
-        status_play_message(False, True, False, chances)
-    else:
-        status_play_message(False, False, False, chances)
-
-
-def check_if_already_guessed(letter, letters):
-    if letter in letters:
-        return True
-    else:
-        return False
-
-
 # ask a user to guess a letter
-def play(word_list):
+def play():
     # randomly choose a word from the list
-    secret_word = random.choice(word_list)
-    display_word = set_secret_word_display(secret_word)
-    guesses = ""
-    chances = 8
-
-    chances_left = chances
-
-    print(f"Let's begin ! Guess the word, you have {chances} chances : "
-          f"\n{' , '.join(display_word)} ")
+    secret_word = set_secret_word_display(word_chosen)
+    chances_left = 8
+    print(f"Let's begin ! Guess the word, you have {chances_left} chances : "
+          f"\n{' , '.join(secret_word)} ")
 
     while chances_left > 0:
         guess = input("Guess a letter of the word : ")
-        letter_guessed = check_guess_in_the_word(guess, secret_word)
+        # check if player's guess not empty
+        if len(guess.strip()) == 0: continue
 
-        if letter_guessed:
-            if check_if_already_guessed(guess, guesses) is False:
-                guesses += letter_guessed.lower()
+        word_to_guess = check_guess(guess, word_chosen, secret_word)
+        display_word = " , ".join(word_to_guess)
 
-                word_to_guess = display_letter_at_guess(letter_guessed, secret_word, display_word)
-                print(" , ".join(word_to_guess))
+        print(f" {display_word}  |  You have {chances_left} chances left")
 
-                if is_a_winning_game(display_word, chances_left):
-                    break
-            else:
-                print("You have already entered this letter. Retry!")
-                continue
+        if guess in word_to_guess:
+            if not "-" in display_word:
+                winning_game(word_to_guess, chances_left)
+                break
+            right_guess(chances_left)
         else:
-            print(" , ".join(display_word))
             chances_left -= 1
-            is_game_over(chances_left)
+            wrong_guess(chances_left)
 
 
-play(words)
+play()
 
 # create a greeting
 print("------------  Thank you for using this program -----------------")
